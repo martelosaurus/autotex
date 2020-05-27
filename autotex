@@ -23,10 +23,10 @@ def main():
     options = [
         Option("-a", "--all",  "Compile all TeX files in the directory"),
         Option("-f", "--full", "Full compile with BibTeX"),
-        Option("-h", "--help", "Displays a help message"),
         Option("-i", "--hide", "Do not display .pdf after compiling"),
         Option("-n", "--new",  "Creates a TeX file"),
-        Option("-r", "--refs", "Run pdflatex twice to resolve references"),
+        Option("-r", "--refs", "Run pdflatex twice to resolve references"),   
+        Option("-w", "--wtf",  "Displays a help message"),
     ]
 
     # TODO customize this
@@ -53,13 +53,18 @@ def main():
         parser.add_option(*option.args,**option.kwargs)
     (cl_opts,cl_args) = parser.parse_args()
     print(cl_opts)
+    cl_args = []
     print(cl_args)
 
     if not cl_args and not cl_opts:
+        "display help"
         print('Options:')
         for option in options:
             print(option)
         print('Arguments:\n\t<filename1.tex> <filename2.tex> ...')
+    elif cl_opts:
+        "create a new file"
+        subprocess.run(['pdflatex',tex_file])
     else:
         if not cl_args:
             tex_files = [f for f in os.listdir() if f.endswith('.tex')]
