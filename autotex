@@ -1,85 +1,115 @@
 #! /usr/bin/env python3
-"""
-A command line tool for creating and compiling TeX files
+"""A command line tool for creating and compiling TeX files"""
+from argparse import ArgumentParser
+import subprocess, os
 
-Type 'autotex' without any options or arguments for help
-"""
-from optparse import OptionParser
-import subprocess
+def _template(_class):
+    """
+    Returns a minimalist TeX template
 
-class Option: # Careful: there's an optparse class called 'Object'
-
-    def __init__(self,_short,_long,_help):
-
-        self.args    = [_short,_long]
-        self.kwargs  = {'help' : _help}
-
-    def __str__(self):
-        print('\t' + '\t'.join(self.args) + '\t' + kwargs['help'])
+    Parameters
+    ----------
+    _class : str
+        LaTeX document classes. A complete list of classes can be found at  
+        https://en.wikibooks.org/wiki/LaTeX/Document_Structure
+    """
+    template = ''
+    template += '\\documentclass{{{}}}\n'
+    template += '\\begin{{document}}\n'
+    template += 'No Gods, No Masters!\n'
+    template += '\\end{{document}}'
+    return template.format(_class)
 
 def main():
 
-    # TODO create a "just-BibTex" option
-    options = [
-        Option("-a", "--all",   "Compile all TeX files in the directory"),
-        Option("-f", "--full",  "Full compile with BibTeX"),
-        Option("-i", "--hide",  "Do not display .pdf after compiling"),
-        Option("-n", "--new",   "Creates a TeX file"),
-        Option("-r", "--refs",  "Run pdflatex twice to resolve references"),   
-        Option("-w", "--wtf",   "Displays a help message"),
-        Option("-b", "--bmr",   "Creates a TeX file with beamer") 
-    ]
+    # -------------------------------------------------------------------------
+    # parameters
 
-    # TODO customize this
-    article_template = ''
-    article_template += '\\documentclass{article}\n'
-    article_template += '\\begin{document}\n\n'
-    article_template += '\\end{document}'
+    # (com)mand (seq)uences
+    cmd_seq = {}
+    cmd_seq['comp'] = ['pdflatex']
+    cmd_seq['full'] = ['pdflatex','pdflatex','bibtex','pdflatex','pdflatex']
+    cmd_seq['refs'] = ['pdflatex','pdflatex']
 
-    def compiler(fname):
+    _class_set = frozenset(('article','beamer','letter'))
+    _compile_set = frozenset(('article','beamer','letter'))
 
-        """
-        Calls pdflatex and bibtex
-        
-        Parameters
-        ----------
-        fname : str
-            Name of TeX file to compile
-        """
-        pass
+    # -------------------------------------------------------------------------
+    # parse arguments
 
     # parse input
-    parser = OptionParser()
-    for option in options:
-        parser.add_option(*option.args,**option.kwargs)
-    (cl_opts,cl_args) = parser.parse_args()
-    print(cl_opts)
-    cl_args = []
-    print(cl_args)
+    parser = ArgumentParser()
+    
+    # create TeX file of class '_class'
+    for _class in _class_set:
+        parser.add_argument("-"+_class[0],"--"+_class,
+            help="Creates a TeX file using the " + _class + " class") 
 
-    if not cl_args and not cl_opts:
-        "display help"
-        print('Options:')
-        for option in options:
-            print(option)
-        print('Arguments:\n\t<filename1.tex> <filename2.tex> ...')
-    elif cl_opts:
-        "create a new file"
-        subprocess.run(['pdflatex',tex_file])
-    else:
-        if not cl_args:
-            tex_files = [f for f in os.listdir() if f.endswith('.tex')]
-            if not tex_files:
-                raise Exception('There are no TeX files in this directory!')
-            elif len(tex_files) > 1:
-                print('There are more than one TeX file in this directory.')
-                print('Which one(s) would you like to compile?')
-                for f in tex_files:
-                    tex_drops.append(input('Compile ' + f + '? (y/N)'))
-            else:
-                tex_files = []
-            for tex_file in tex_files:
-                subprocess.run(['pdflatex',tex_file])
-            
-        print(tex_files)
+    # compile using the command sequence '_cmdseq'
+    for _cmd in _cmdseq:
+
+    # compile arguments
+    parser.add_argument("-c","--comp",
+        action="store_true",
+        help="Compile arguments") 
+
+    # compile to resolve references
+    parser.add_argument("-r","--refs",
+        action="store_true",
+        help="Resolve references")  
+
+    # full compile
+    parser.add_argument("-f","--full",
+        action="store_true",
+        help="Full compile with BibTeX")
+
+    # open PDF(s)
+    parser.add_argument("-d","--display",
+        action="store_false",
+        help="Don't display pdf file")
+
+    # parse arguments
+    args = parser.parse_args()
+    args_dict = vars(args)
+
+    # -------------------------------------------------------------------------
+    # parse arguments
+
+    # creater article, beamer, or letter file
+    for _class in ['article','beamer','letter']:
+        if args_dict[_class]:
+            fname = args_dict[_class].replace('.tex','')+'.tex'
+            f = open(fname,'w')
+            f.write(_template(_class))
+            f.close()
+            #TODO use $EDITOR and raise an exception if $EDITOR is empty
+            subprocess.run(['vim',fname])
+
+    tex_drops = []
+    if args.compile or args.full or args.refs:
+        tex_files = [f for f in os.listdir() if f.endswith('.tex')]
+        if not tex_files:
+            raise Exception("There are no TeX files in this directory! " +
+                "Use the '-b' or '-c' options to create a new file.")
+        elif len(tex_files) > 1:
+            print("There are more than one TeX file in this directory. " +
+                "Which one(s) would you like to compile?")
+            for f in tex_files:
+                if input("Compile " + f + "? (y/N) ") is 'y':
+                    tex_drops.append(f)
+        else:
+            tex_drops = tex_files
+    
+    # -------------------------------------------------------------------------
+    # compile
+
+    for f in tex_drops:
+        for seq in ['comp','full','refs']:
+            if args_dict[seq]: 
+                for cmd in cmd_seq[seq]:
+                    subprocess.run([cmd,f.replace('.tex','')])
+        if args.display:
+            subprocess.run(['evince',f.replace('.tex','.pdf')])
+            #TODO autodetect the system pdf reader
+
 main()

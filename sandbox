@@ -9,11 +9,14 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("-a", "--aopt", help="A option", action="store_true")
     parser.add_argument("-b", "--bopt", help="B option")
+    parser.add_argument("-c", "--copt", help="C option", action="store_true")
     args = parser.parse_args()
     if args.aopt:
         print('you have selected option A')
     if args.bopt:
         print('you have selected option B with argument ' + str(args.bopt))
+    if args.copt:
+        print('you have selected option C')
     print(__doc__)
 
 main()
