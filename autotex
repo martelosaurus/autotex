@@ -21,12 +21,13 @@ def main():
 
     # TODO create a "just-BibTex" option
     options = [
-        Option("-a", "--all",  "Compile all TeX files in the directory"),
-        Option("-f", "--full", "Full compile with BibTeX"),
-        Option("-i", "--hide", "Do not display .pdf after compiling"),
-        Option("-n", "--new",  "Creates a TeX file"),
-        Option("-r", "--refs", "Run pdflatex twice to resolve references"),   
-        Option("-w", "--wtf",  "Displays a help message"),
+        Option("-a", "--all",   "Compile all TeX files in the directory"),
+        Option("-f", "--full",  "Full compile with BibTeX"),
+        Option("-i", "--hide",  "Do not display .pdf after compiling"),
+        Option("-n", "--new",   "Creates a TeX file"),
+        Option("-r", "--refs",  "Run pdflatex twice to resolve references"),   
+        Option("-w", "--wtf",   "Displays a help message"),
+        Option("-b", "--bmr",   "Creates a TeX file with beamer") 
     ]
 
     # TODO customize this
