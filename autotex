@@ -16,26 +16,21 @@ def _template(_class):
     template = ''
     template += '\\documentclass{{{}}}\n'
     template += '\\begin{{document}}\n'
-    template += 'No Gods, No Masters!\n'
+    template += 'PC load letter\n'
     template += '\\end{{document}}'
     return template.format(_class)
 
 def main():
 
     # -------------------------------------------------------------------------
-    # parameters
+    # parse 
+
+    # NOTES: by way of example, the call sequence 'ppbpp' means call 'pdflatex'
+    # twice, then 'bibtex' once, then 'pdflatex' twice. 
 
     # (com)mand (seq)uences
-    cmd_seq = {}
-    cmd_seq['comp'] = ['pdflatex']
-    cmd_seq['full'] = ['pdflatex','pdflatex','bibtex','pdflatex','pdflatex']
-    cmd_seq['refs'] = ['pdflatex','pdflatex']
-
-    _class_set = frozenset(('article','beamer','letter'))
-    _compile_set = frozenset(('article','beamer','letter'))
-
-    # -------------------------------------------------------------------------
-    # parse arguments
+    _class_set = ['article','beamer','letter']
+    _calls_set = {'easy' : 'p', 'full' : 'ppbpp', 'refs' : 'pp'}
 
     # parse input
     parser = ArgumentParser()
@@ -45,71 +40,51 @@ def main():
         parser.add_argument("-"+_class[0],"--"+_class,
             help="Creates a TeX file using the " + _class + " class") 
 
-    # compile using the command sequence '_cmdseq'
-    for _cmd in _cmdseq:
-
-    # compile arguments
-    parser.add_argument("-c","--comp",
-        action="store_true",
-        help="Compile arguments") 
-
-    # compile to resolve references
-    parser.add_argument("-r","--refs",
-        action="store_true",
-        help="Resolve references")  
-
-    # full compile
-    parser.add_argument("-f","--full",
-        action="store_true",
-        help="Full compile with BibTeX")
+    # compile TeX file(s) using the call sequence '_calls'
+    for _calls in _calls_set.keys():
+        parser.add_argument("-"+_calls[0],"--"+_calls,
+            action="store_true",
+            help="Compiles a TeX file using the " + _calls + " class") 
 
     # open PDF(s)
-    parser.add_argument("-d","--display",
+    parser.add_argument("-i","--hide",
         action="store_false",
-        help="Don't display pdf file")
+        help="Don't display pdf after compilation")
 
     # parse arguments
     args = parser.parse_args()
     args_dict = vars(args)
 
     # -------------------------------------------------------------------------
-    # parse arguments
+    # execute
 
-    # creater article, beamer, or letter file
-    for _class in ['article','beamer','letter']:
+    # (if desired) create article, beamer, or letter TeX file
+    for _class in _class_set:
         if args_dict[_class]:
             fname = args_dict[_class].replace('.tex','')+'.tex'
             f = open(fname,'w')
             f.write(_template(_class))
             f.close()
-            #TODO use $EDITOR and raise an exception if $EDITOR is empty
             subprocess.run(['vim',fname])
+            #TODO autodetect the system text editor (using $EDITOR?)
 
-    tex_drops = []
-    if args.compile or args.full or args.refs:
+    # (if desired) compile
+    if args.comp or args.full or args.refs:
         tex_files = [f for f in os.listdir() if f.endswith('.tex')]
         if not tex_files:
             raise Exception("There are no TeX files in this directory! " +
                 "Use the '-b' or '-c' options to create a new file.")
         elif len(tex_files) > 1:
-            print("There are more than one TeX file in this directory. " +
-                "Which one(s) would you like to compile?")
-            for f in tex_files:
-                if input("Compile " + f + "? (y/N) ") is 'y':
-                    tex_drops.append(f)
+            raise Exception("There are more than one TeX file in this " + 
+                "directory. This is poor practice. Fix and then try again.")
         else:
-            tex_drops = tex_files
-    
-    # -------------------------------------------------------------------------
-    # compile
-
-    for f in tex_drops:
-        for seq in ['comp','full','refs']:
-            if args_dict[seq]: 
-                for cmd in cmd_seq[seq]:
-                    subprocess.run([cmd,f.replace('.tex','')])
-        if args.display:
-            subprocess.run(['evince',f.replace('.tex','.pdf')])
-            #TODO autodetect the system pdf reader
+            for f in tex_files: 
+                for _calls in _calls_set:
+                    if args_dict[_calls]: 
+                        for call in _calls_set[_calls]:
+                            subprocess.run([call,f.replace('.tex','')])
+                if not args.hide:
+                    subprocess.run(['evince',f.replace('.tex','.pdf')])
+                    #TODO autodetect the system pdf reader
 
 main()
