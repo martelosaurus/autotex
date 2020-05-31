@@ -4,6 +4,7 @@ autotex is a simple command line tool for rapidly initializing and compiling LaT
 ```
 To install, make a symbolic link in /bin/ to autotex and chmod autotex. Currently assumes that the user has vim and evince installed. 
 
+```markdown
 usage: autotex [-h] [-a ARTICLE] [-b BEAMER] [-l LETTER] [-f] [-r] [-e] [-i]
 
 optional arguments:
@@ -15,3 +16,4 @@ optional arguments:
   -r, --refs            Compiles a TeX file using the refs class
   -e, --easy            Compiles a TeX file using the easy class
   -i, --hide            Don't display pdf after compilation
+```
