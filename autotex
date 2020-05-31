@@ -29,26 +29,28 @@ def main():
     # twice, then 'bibtex' once, then 'pdflatex' twice. 
 
     # (com)mand (seq)uences
-    _class_set = ['article','beamer','letter']
-    _calls_set = {'easy' : 'p', 'full' : 'ppbpp', 'refs' : 'pp'}
+    _class_list = ['article','beamer','letter']
+    _calls_dict = {'easy' : 'p', 'full' : 'ppbpp', 'refs' : 'pp'}
+    call_long_name = {'b' : 'bibtex', 'p' : 'pdflatex'}
+    # TODO rename '_long_name' 
 
     # parse input
     parser = ArgumentParser()
     
     # create TeX file of class '_class'
-    for _class in _class_set:
+    for _class in _class_list:
         parser.add_argument("-"+_class[0],"--"+_class,
             help="Creates a TeX file using the " + _class + " class") 
 
     # compile TeX file(s) using the call sequence '_calls'
-    for _calls in _calls_set.keys():
+    for _calls in _calls_dict.keys():
         parser.add_argument("-"+_calls[0],"--"+_calls,
             action="store_true",
             help="Compiles a TeX file using the " + _calls + " class") 
 
     # open PDF(s)
     parser.add_argument("-i","--hide",
-        action="store_false",
+        action="store_true",
         help="Don't display pdf after compilation")
 
     # parse arguments
@@ -59,7 +61,7 @@ def main():
     # execute
 
     # (if desired) create article, beamer, or letter TeX file
-    for _class in _class_set:
+    for _class in _class_list:
         if args_dict[_class]:
             fname = args_dict[_class].replace('.tex','')+'.tex'
             f = open(fname,'w')
@@ -68,23 +70,22 @@ def main():
             subprocess.run(['vim',fname])
             #TODO autodetect the system text editor (using $EDITOR?)
 
-    # (if desired) compile
-    if args.comp or args.full or args.refs:
-        tex_files = [f for f in os.listdir() if f.endswith('.tex')]
-        if not tex_files:
-            raise Exception("There are no TeX files in this directory! " +
-                "Use the '-b' or '-c' options to create a new file.")
-        elif len(tex_files) > 1:
-            raise Exception("There are more than one TeX file in this " + 
-                "directory. This is poor practice. Fix and then try again.")
-        else:
-            for f in tex_files: 
-                for _calls in _calls_set:
-                    if args_dict[_calls]: 
-                        for call in _calls_set[_calls]:
-                            subprocess.run([call,f.replace('.tex','')])
-                if not args.hide:
-                    subprocess.run(['evince',f.replace('.tex','.pdf')])
-                    #TODO autodetect the system pdf reader
+    # parse compilation options
 
+    # (if desired) compile
+    if True:
+        tex_files = [f for f in os.listdir() if f.endswith('.tex')]
+        if len(tex_files) == 0:
+            raise Exception("There are no TeX files in this directory! " +
+                "Use the --help options and consult the option list to create a new file.")
+        if len(tex_files) > 1:
+            raise Exception("There are more than one TeX file in this " + 
+                "directory. This is poor practice. Reorganize and try again.")
+        for _calls in _calls_dict.keys():
+            if args_dict[_calls]: 
+                for call in _calls_dict[_calls]:
+                    subprocess.run([call_long_name[call],tex_files[0].replace('.tex','')])
+        if not args.hide:
+            subprocess.run(['evince',tex_files[0].replace('.tex','.pdf')])
+            #TODO autodetect the system pdf reader
 main()
