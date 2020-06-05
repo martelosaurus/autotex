@@ -1,5 +1,36 @@
 #! /usr/bin/env python3
-"""A command line tool for creating and compiling TeX files"""
+"""
+A command line tool for creating and compiling TeX files
+
+Notes
+-----
+
+1. Document Creation.
+
+By way of example, suppose that you want to create a TeX document with the
+article class called 'foo_bar.tex'. Then enter
+
+    autotex -a foo_bar.tex
+
+See --help for a list of supported sequences. 
+
+2. Compilation Sequences. 
+
+By way of example, the call sequence 'pbpp' means call 'pdflatex' once, then 
+'bibtex' once, then 'pdflatex' twice. The following sequences are supported:
+
+    Name    Sequence    Description
+    ----    --------    -----------
+    easy    p           basic compilation 
+    refs    pp          second compilation handles reference numbering 
+    full    pbpp        compilation sequence for BibTeX
+
+References
+----------
+The Internet
+
+TODO: find a better reference. 
+"""
 from argparse import ArgumentParser
 import subprocess, os
 
@@ -25,12 +56,9 @@ def main():
     # -------------------------------------------------------------------------
     # parse 
 
-    # NOTES: by way of example, the call sequence 'ppbpp' means call 'pdflatex'
-    # twice, then 'bibtex' once, then 'pdflatex' twice. 
-
     # (com)mand (seq)uences
     _class_list = ['article','beamer','letter']
-    _calls_dict = {'easy' : 'p', 'full' : 'ppbpp', 'refs' : 'pp'}
+    _calls_dict = {'easy' : 'p', 'full' : 'pbpp', 'refs' : 'pp'}
     call_long_name = {'b' : 'bibtex', 'p' : 'pdflatex'}
     # TODO rename '_long_name' 
 
@@ -48,7 +76,7 @@ def main():
     for _calls in _calls_dict.keys():
         parser.add_argument("-"+_calls[0],"--"+_calls,
             action="store_true",
-            help="compiles a TeX file using the '" + _calls + "' sequence") 
+            help="compiles using the '" + _calls + "' sequence (see --docs)") 
 
     # open PDF(s)
     parser.add_argument("-i","--hide",
@@ -83,7 +111,7 @@ def main():
 
     # (if desired) compile
     #if one of the compile options is True
-    if True:
+    if False:
         tex_files = [f for f in os.listdir() if f.endswith('.tex')]
         if len(tex_files) == 0:
             raise Exception("There are no TeX files in this directory! " +
@@ -98,4 +126,8 @@ def main():
         if not args.hide:
             subprocess.run(['evince',tex_files[0].replace('.tex','.pdf')])
             #TODO autodetect the system pdf reader
+
+    # clean-up
+
+
 main()
