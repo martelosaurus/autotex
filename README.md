@@ -1,19 +1,18 @@
-autotex is a simple command line tool for rapidly initializing and compiling LaTeX documents
-```markdown
-/some_path$ autotex -f 
-```
-To install, make a symbolic link in /bin/ to autotex and chmod autotex. Currently assumes that the user has vim and evince installed. 
+autotex is a simple command line tool for rapidly initializing and compiling LaTeX documents. To install, make a symbolic link in /bin/ to autotex and chmod autotex. Currently assumes that the user has vim and evince installed. 
 
 ```markdown
-usage: autotex [-h] [-a ARTICLE] [-b BEAMER] [-l LETTER] [-f] [-r] [-e] [-i]
+usage: autotex [-h] [-a _] [-b _] [-l _] [-e] [-r] [-f] [-i] [-d]
+
+A command line tool for creating and compiling TeX files
 
 optional arguments:
-  -h, --help			show this help message and exit
-  -a, --article 		creates a TeX file using the article class
-  -b, --beamer			creates a TeX file using the beamer class
-  -l, --letter 			creates a TeX file using the letter class
-  -f, --full			compiles a TeX file using the full class
-  -r, --refs			compiles a TeX file using the refs class
-  -e, --easy			compiles a TeX file using the easy class
-  -i, --hide			don't display pdf after compilation
+  -h, --help         show this help message and exit
+  -a _, --article _  creates a TeX file using the article class
+  -b _, --beamer _   creates a TeX file using the beamer class
+  -l _, --letter _   creates a TeX file using the letter class
+  -e, --easy         compiles using the 'easy' sequence (see --docs)
+  -r, --refs         compiles using the 'refs' sequence (see --docs)
+  -f, --full         compiles using the 'full' sequence (see --docs)
+  -i, --hide         don't display pdf after compilation
+  -d, --docs         displays additional info on compilation sequences
 ```
