@@ -27,109 +27,142 @@ By way of example, the call sequence 'pbpp' means call 'pdflatex' once, then
 
 References
 ----------
-The Internet
-
-TODO: find a better reference. 
+https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
 """
 from argparse import ArgumentParser
 import subprocess, os
 
-def _template(_class):
-    """
-    Returns a minimalist TeX template
+def _tex_template(_class,_name,_math=True,_cite=False):
+	"""
+	Returns a minimalist TeX template
 
-    Parameters
-    ----------
-    _class : str
-        LaTeX document classes. A complete list of classes can be found at  
-        https://en.wikibooks.org/wiki/LaTeX/Document_Structure
-    """
-    template = ''
-    template += '\\documentclass{{{}}}\n'
-    template += '\\begin{{document}}\n'
-    template += 'PC load letter\n'
-    template += '\\end{{document}}'
-    return template.format(_class)
+	Parameters
+	----------
+	_class : str
+		LaTeX document classes. A complete list of classes can be found at  
+		https://en.wikibooks.org/wiki/LaTeX/Document_Structure
+	_math : bool
+		If True, include packages 'amsmath','amssymb','amsfonts'.
+	_cite: bool
+		If True, create a citation and bibliography
+	"""
+	#TODO the user does not have the option to set _math=False
+	template = '\\documentclass{{{doc_class}}}\n'
+
+	if _math:
+		template += '\\usepackage{{amsfonts,amsmath,amssymb}}\n'
+
+	template += '\\begin{{document}}\n'
+	template += '$2+2=5$\n'
+
+	if _cite:
+		template += "``War is Peace, Freedom is Slavery, Ignorance is Strength'' "
+		template += '\\cite{{orwell1984}}\n'
+		template += '\\bibliographystyle{{plain}}\n'
+		template += '\\bibliography{{{bib_file}}}\n'
+	
+	template += '\\end{{document}}'
+	return template.format(doc_class=_class,bib_file=_name)
+
+def _bib_template():
+	"""Returns a minimalist BibTeX template"""
+	template = ''
+	template += '@book{orwell1984,\n'
+	template += '\tauthor\t\t="George Orwell",\n'
+	template += '\ttitle\t\t="1984",\n'
+	template += '\tpublisher\t\t="Secker \& Warburg",\n'
+	template += '\tyear\t\t="1949"\n'
+	template += '}'
+	return template
 
 def main():
 
-    # -------------------------------------------------------------------------
-    # parse 
+	# -------------------------------------------------------------------------
+	# parse 
 
-    # (com)mand (seq)uences
-    _class_list = ['article','beamer','letter']
-    _calls_dict = {'easy' : 'p', 'full' : 'pbpp', 'refs' : 'pp'}
-    _call_name = {'b' : 'bibtex', 'p' : 'pdflatex'}
-    # TODO rename '_long_name' 
+	# (com)mand (seq)uences
+	_class_list = ['article','beamer','letter']
+	_calls_dict = {'easy' : 'p', 'full' : 'pbpp', 'refs' : 'pp'}
+	_call_name = {'b' : 'bibtex', 'p' : 'pdflatex'}
 
-    # parse input
-    _description = "A command line tool for creating and compiling TeX files"
-    parser = ArgumentParser(description=_description)
-    
-    # create TeX file of class '_class'
-    for _class in _class_list:
-        parser.add_argument("-"+_class[0],"--"+_class,
-            metavar='_',
-            help="creates a TeX file using the " + _class + " class") 
+	# parse input
+	_description = "A command line tool for creating and compiling TeX files"
+	parser = ArgumentParser(description=_description)
 
-    # compile TeX file(s) using the call sequence '_calls'
-    for _calls in _calls_dict.keys():
-        parser.add_argument("-"+_calls[0],"--"+_calls,
-            action="store_true",
-            help="compiles using the '" + _calls + "' sequence (see --docs)") 
+	# create TeX file of class '_class'
+	for _class in _class_list:
+		parser.add_argument("-"+_class[0],"--"+_class,
+			metavar='_',
+			help="creates a TeX file using the " + _class + " class") 
 
-    # open PDF(s)
-    parser.add_argument("-i","--hide",
-        action="store_true",
-        help="don't display pdf after compilation")
+	# create a Bib file
+	parser.add_argument("-c","--cite",
+		action='store_true',
+		help="creates a BibTex file")
 
-    # documentation
-    parser.add_argument("-d","--docs",
-        action="store_true",
-        help="displays additional info on compilation sequences")
+	# compile TeX file(s) using the call sequence '_calls'
+	for _calls in _calls_dict.keys():
+		parser.add_argument("-"+_calls[0],"--"+_calls,
+			action="store_true",
+			help="compiles using the '" + _calls + "' sequence (see --docs)") 
 
-    # parse arguments
-    args = parser.parse_args()
-    args_dict = vars(args)
+	# open PDF(s)
+	parser.add_argument("-i","--hide",
+		action="store_true",
+		help="don't display pdf after compilation")
 
-    # -------------------------------------------------------------------------
-    # execute
+	# documentation
+	parser.add_argument("-d","--docs",
+		action="store_true",
+		help="displays additional info on compilation sequences")
 
-    # display docstring
-    if args.docs:
-        print(__doc__)
+	# parse arguments
+	args = parser.parse_args()
+	args_dict = vars(args)
 
-    # (if desired) create article, beamer, or letter TeX file
-    for _class in _class_list:
-        if args_dict[_class]:
-            fname = args_dict[_class].replace('.tex','')+'.tex'
-            f = open(fname,'w')
-            f.write(_template(_class))
-            f.close()
-            subprocess.run(['vim',fname])
-            #TODO autodetect the system text editor (using $EDITOR?)
+	# -------------------------------------------------------------------------
+	# execute
 
-    # parse compilation sequences
-    calls = [_calls for _calls in _calls_dict.keys() if args_dict[_calls]]
-    if len(calls) > 1:
-        raise Exception("You have selected more than one call sequence.")
-             
-    # (if desired) compile
-    if calls:
-        tex_files = [f for f in os.listdir() if f.endswith('.tex')]
-        if len(tex_files) == 0:
-            raise Exception("There are no TeX files in this directory! " +
-                "Use the -h option for info on creating new TeX files.")
-        if len(tex_files) > 1:
-            raise Exception("There are more than one TeX file in this " + 
-                "directory. This is poor practice. Reorganize and try again.")
-        for call in _calls_dict[calls[0]]:
-            subprocess.run([_call_name[call],tex_files[0].replace('.tex','')])
-        if not args.hide:
-            subprocess.run(['evince',tex_files[0].replace('.tex','.pdf')])
-            #TODO autodetect the system pdf reader
+	# display docstring
+	if args.docs:
+		print(__doc__)
 
-    # clean-up
-    return args
+	# (if desired) create article, beamer, or letter TeX file
+	for _class in _class_list:
+		if args_dict[_class]:
+			fname = args_dict[_class].replace('.tex','')+'.tex'
+			f = open(fname,'w')
+			f.write(_tex_template(_class,fname.replace('.tex',''),_cite=args.cite))
+			f.close()
+			# (if desired) create a BibTeX file
+			if args.cite:
+				f = open(fname.replace('.tex','')+'.bib','w')
+				f.write(_bib_template())
+				f.close()
+			subprocess.run(['vim',fname])
+		#TODO autodetect the system text editor (using $EDITOR?)
+		
+	# parse compilation sequences
+	calls = [_calls for _calls in _calls_dict.keys() if args_dict[_calls]]
+	if len(calls) > 1:
+		raise Exception("You have selected more than one call sequence.")
+			 
+	# (if desired) compile
+	if calls:
+		tex_files = [f for f in os.listdir() if f.endswith('.tex')]
+		if len(tex_files) == 0:
+			raise Exception("There are no TeX files in this directory! " +
+				"Use the -h option for info on creating new TeX files.")
+		if len(tex_files) > 1:
+			raise Exception("There are more than one TeX file in this " + 
+				"directory. This is poor practice. Reorganize and try again.")
+		for call in _calls_dict[calls[0]]:
+			subprocess.run([_call_name[call],tex_files[0].replace('.tex','')])
+		if not args.hide:
+			subprocess.run(['evince',tex_files[0].replace('.tex','.pdf')])
+			#TODO autodetect the system pdf reader
+
+	# clean-up
+	return args
 
 _args = main()
