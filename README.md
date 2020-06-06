@@ -1,4 +1,4 @@
-autotex is a simple command line tool for rapidly initializing and compiling LaTeX documents. Currently, it's more of a learning project so that I can't write CLIs in the future. 
+autotex is a simple command line tool for rapidly initializing and compiling LaTeX documents. Currently, it's more of a learning project so that I can write CLIs in the future. 
 
 To install, make a symbolic link in /bin/ to autotex and chmod autotex. Currently assumes that the user has vim and evince installed. 
 
