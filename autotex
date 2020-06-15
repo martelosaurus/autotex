@@ -92,8 +92,8 @@ def main():
     # create TeX file of class '_class'
     for _class in _class_list:
         parser.add_argument("-"+_class[0],"--"+_class,
-                metavar='_',
-                help="creates a TeX file using the " + _class + " class") 
+            metavar='_',
+            help="creates a TeX file using the " + _class + " class") 
 
     # create a Bib file
     parser.add_argument("-c","--cite",
@@ -157,10 +157,10 @@ def main():
         tex_files = [f for f in os.listdir() if f.endswith('.tex')]
         if len(tex_files) == 0:
             raise Exception("There are no TeX files in this directory! " +
-                    "Use the -h option for info on creating new TeX files.")
+                "Use the -h option for info on creating new TeX files.")
         if len(tex_files) > 1:
             raise Exception("There are more than one TeX file in this " + 
-                    "directory. This is poor practice. Reorganize and try again.")
+                "directory. This is poor practice. Reorganize and try again.")
         for call in _calls_dict[calls[0]]:
             subprocess.run([_call_name[call],tex_files[0].replace('.tex','')])
         if not args.hide:
@@ -168,9 +168,9 @@ def main():
             #TODO autodetect the system pdf reader
 
     # git 
-    if gacp:
+    if args.gacp:
         subprocess.run(['git add .'])
-        subprocess.run(['git commit -S -m',gacp])
+        subprocess.run(['git commit -S -m',args.gacp])
         subprocess.run(['git push'])
 
     # clean-up
